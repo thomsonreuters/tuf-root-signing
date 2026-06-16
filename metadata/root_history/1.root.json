@@ -1,0 +1,65 @@
+{
+ "signatures": [
+  {
+   "keyid": "c44e1de6c2c5c227a468edab3774b73776960bf478d7dd75dfbfd3ad9ca07157",
+   "sig": ""
+  }
+ ],
+ "signed": {
+  "_type": "root",
+  "consistent_snapshot": true,
+  "expires": "2027-06-16T16:13:08Z",
+  "keys": {
+   "783e6da2d307aa71e4b280952ad56fbd36f4a3df65afa38b17397dccd6e1da86": {
+    "keytype": "ecdsa",
+    "keyval": {
+     "public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEs8hOPItol0NB/sRwjPSGW3VJlIDB\nbuVCTDU6yCn/R0gAHJeyra6ac/iRZo/vFhPtyDbNWmpcfXCo3jAh1I2vdQ==\n-----END PUBLIC KEY-----\n"
+    },
+    "scheme": "ecdsa-sha2-nistp256",
+    "x-tuf-on-ci-online-uri": "awskms:519081fd-e99f-403a-aa7f-1fbaa92b7df7"
+   },
+   "c44e1de6c2c5c227a468edab3774b73776960bf478d7dd75dfbfd3ad9ca07157": {
+    "keytype": "ecdsa",
+    "keyval": {
+     "public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEYUrUR+JiuPl1FYJjQ6rpIyc7/94A\nOZ634AVMnlvOH5165vbTzC7Y9lsg/T9oGi6U9kFR1Ceqnp0AYmi78btOUQ==\n-----END PUBLIC KEY-----\n"
+    },
+    "scheme": "ecdsa-sha2-nistp256",
+    "x-tuf-on-ci-keyowner": "@arber-salihi"
+   }
+  },
+  "roles": {
+   "root": {
+    "keyids": [
+     "c44e1de6c2c5c227a468edab3774b73776960bf478d7dd75dfbfd3ad9ca07157"
+    ],
+    "threshold": 3
+   },
+   "snapshot": {
+    "keyids": [
+     "783e6da2d307aa71e4b280952ad56fbd36f4a3df65afa38b17397dccd6e1da86"
+    ],
+    "threshold": 1,
+    "x-tuf-on-ci-expiry-period": 10,
+    "x-tuf-on-ci-signing-period": 7
+   },
+   "targets": {
+    "keyids": [
+     "c44e1de6c2c5c227a468edab3774b73776960bf478d7dd75dfbfd3ad9ca07157"
+    ],
+    "threshold": 3
+   },
+   "timestamp": {
+    "keyids": [
+     "783e6da2d307aa71e4b280952ad56fbd36f4a3df65afa38b17397dccd6e1da86"
+    ],
+    "threshold": 1,
+    "x-tuf-on-ci-expiry-period": 7,
+    "x-tuf-on-ci-signing-period": 6
+   }
+  },
+  "spec_version": "1.0.31",
+  "version": 1,
+  "x-tuf-on-ci-expiry-period": 365,
+  "x-tuf-on-ci-signing-period": 60
+ }
+}
