@@ -10,13 +10,17 @@
   },
   {
    "keyid": "7b8d2556efdb334ecbbe4bea7f448a1ddd81c7b1b51139aa3244c2f25fd15784",
-   "sig": "304402201ea9a070abbeba3bd5d14c1f40e30c4e2bbec130c719f82ab18cf936cda4a0cb02200f14b6930f78cd2d75a1d152be83bca8f552c248a33503e14ab19f51678656e7"
+   "sig": ""
+  },
+  {
+   "keyid": "fc04986c816a43823f6d6a19bb63dc9a799cb46d1274f61a7255ee13a7662157",
+   "sig": ""
   }
  ],
  "signed": {
   "_type": "root",
   "consistent_snapshot": true,
-  "expires": "2027-06-16T16:21:23Z",
+  "expires": "2027-06-16T17:12:23Z",
   "keys": {
    "783e6da2d307aa71e4b280952ad56fbd36f4a3df65afa38b17397dccd6e1da86": {
     "keytype": "ecdsa",
@@ -49,6 +53,14 @@
     },
     "scheme": "ecdsa-sha2-nistp256",
     "x-tuf-on-ci-keyowner": "@arber-salihi"
+   },
+   "fc04986c816a43823f6d6a19bb63dc9a799cb46d1274f61a7255ee13a7662157": {
+    "keytype": "ecdsa",
+    "keyval": {
+     "public": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEhCyH4FdsmhBo9EfCT2vrAOR4W6Ii\nYqZLzHyLSQ6yzdDLcJlqTyxtonzC9KwtvpDFDXsW1g43/5V6AGqpOjVA3A==\n-----END PUBLIC KEY-----\n"
+    },
+    "scheme": "ecdsa-sha2-nistp256",
+    "x-tuf-on-ci-keyowner": "@adamdrewstr"
    }
   },
   "roles": {
@@ -56,7 +68,8 @@
     "keyids": [
      "c44e1de6c2c5c227a468edab3774b73776960bf478d7dd75dfbfd3ad9ca07157",
      "91c23617d6a087a213437f1539c2f1edfdef9d29db0c39a2f2ae1647dab88a0f",
-     "7b8d2556efdb334ecbbe4bea7f448a1ddd81c7b1b51139aa3244c2f25fd15784"
+     "7b8d2556efdb334ecbbe4bea7f448a1ddd81c7b1b51139aa3244c2f25fd15784",
+     "fc04986c816a43823f6d6a19bb63dc9a799cb46d1274f61a7255ee13a7662157"
     ],
     "threshold": 3
    },
@@ -72,7 +85,8 @@
     "keyids": [
      "c44e1de6c2c5c227a468edab3774b73776960bf478d7dd75dfbfd3ad9ca07157",
      "91c23617d6a087a213437f1539c2f1edfdef9d29db0c39a2f2ae1647dab88a0f",
-     "7b8d2556efdb334ecbbe4bea7f448a1ddd81c7b1b51139aa3244c2f25fd15784"
+     "7b8d2556efdb334ecbbe4bea7f448a1ddd81c7b1b51139aa3244c2f25fd15784",
+     "fc04986c816a43823f6d6a19bb63dc9a799cb46d1274f61a7255ee13a7662157"
     ],
     "threshold": 3
    },
