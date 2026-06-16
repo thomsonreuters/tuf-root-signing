@@ -1,0 +1,15 @@
+# This is the human-edited source. The pinned, hash-locked file that is
+# actually installed is requirements.txt, regenerated with:
+#
+#   pip-compile --generate-hashes --output-file=requirements.txt requirements.in
+#
+# Install with hash verification:
+#
+#   pip install --require-hashes -r requirements.txt
+#
+tuf
+
+# `tuf` pulls plain securesystemslib. The crypto extra supplies the
+# signature-verification backend ngclient needs. Without it, refresh
+# silently treats every signature as invalid (0 valid signatures).
+securesystemslib[crypto]

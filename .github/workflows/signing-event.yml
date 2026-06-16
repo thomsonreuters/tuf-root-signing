@@ -1,0 +1,50 @@
+# =============================================================================
+# Signing event
+# =============================================================================
+#
+# Push-triggered. Runs on every push to a `sign/**` branch. Updates the PR's
+# status comment with the current list of collected signatures, recomputes
+# whether the threshold has been met, and marks the PR ready for merge once
+# satisfied.
+#
+# =============================================================================
+
+name: Signing event
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['sign/**']
+    paths:
+      - 'metadata/**'
+      - 'targets/**'
+
+permissions: {}
+
+concurrency:
+  group: signing-event-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  handle-signing-event:
+    name: Manage signing-event PR state
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Don't run in forks!
+    if: github.repository_owner == 'thomsonreuters'
+    permissions:
+      contents:      write
+      pull-requests: write
+      actions:       write
+    steps:
+      - id: app-token
+        name: Mint a GitHub App installation token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id:   ${{ secrets.TUF_ON_CI_APP_CLIENT_ID }}
+          private-key: ${{ secrets.TUF_ON_CI_APP_PRIVATE_KEY }}
+
+      - name: Update signing-event PR state
+        uses: theupdateframework/tuf-on-ci/actions/signing-event@4e63a5934064216b7caa7a4a833b1b0936bec660 # v0.20.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}

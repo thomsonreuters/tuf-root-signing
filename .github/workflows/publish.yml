@@ -1,0 +1,121 @@
+# =============================================================================
+# Publish
+# =============================================================================
+#
+# Builds the consistent-snapshot repository layout, deploys it to a GitHub
+# Pages preview for smoke testing, deploys to the production S3 bucket, and
+# runs the smoke test again against the live CloudFront endpoint.
+#
+# =============================================================================
+
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Ref to publish (default: the dispatched ref — the publish branch tip)'
+        type: string
+        required: false
+
+permissions: {}
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Build the publishable repository state as a GitHub Pages artifact.
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build consistent-snapshot repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Build publishable repository
+        uses: theupdateframework/tuf-on-ci/actions/upload-repository@4e63a5934064216b7caa7a4a833b1b0936bec660 # v0.20.0
+        with:
+          gh_pages:      true
+          ref:           ${{ inputs.ref }}
+          metadata_path: './'
+
+  # ---------------------------------------------------------------------------
+  # 2. Deploy to GitHub Pages as a pre-prod preview surface.
+  #    Used to smoke-test the artifact before pushing to the production CDN.
+  # ---------------------------------------------------------------------------
+  deploy-to-pages:
+    name: Deploy preview to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [build]
+    timeout-minutes: 10
+    permissions:
+      pages:    write
+      id-token: write
+    environment:
+      name: github-pages
+      url:  ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        name: Deploy repository artifact to GitHub Pages
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+
+  # ---------------------------------------------------------------------------
+  # 3. Smoke-test the preview before touching production.
+  # ---------------------------------------------------------------------------
+  test-deployed-pages:
+    name: Smoke test the GitHub Pages preview
+    needs: [deploy-to-pages]
+    permissions:
+      contents: read
+      issues:   write
+      id-token: write
+    uses: ./.github/workflows/test.yml
+
+  # ---------------------------------------------------------------------------
+  # 4. Deploy to the production S3 bucket.
+  #    Only after the preview passes.
+  # ---------------------------------------------------------------------------
+  deploy-to-s3:
+    name: Deploy to S3 + invalidate CloudFront
+    needs: [test-deployed-pages]
+    permissions:
+      id-token: write
+    uses: ./.github/workflows/deploy-to-s3.yml
+    secrets:
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+
+  # ---------------------------------------------------------------------------
+  # 5. Smoke-test the live CloudFront endpoint.
+  # ---------------------------------------------------------------------------
+  test-deployed-s3:
+    name: Smoke test the live CloudFront endpoint
+    needs: [deploy-to-s3]
+    permissions:
+      contents: read
+      issues:   write
+      id-token: write
+    uses: ./.github/workflows/test.yml
+    with:
+      metadata_url: https://tuf.thomsonreuters.com
+
+  # ---------------------------------------------------------------------------
+  # 6. Update the workflow's tracking issue on success/failure.
+  # ---------------------------------------------------------------------------
+  update-issue:
+    name: Update tracking issue
+    runs-on: ubuntu-latest
+    needs:   [build, deploy-to-pages, test-deployed-pages, deploy-to-s3, test-deployed-s3]
+    if:      always() && !cancelled()
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues:   write
+    steps:
+      - name: Open / close the workflow's tracking issue based on outcome
+        uses: theupdateframework/tuf-on-ci/actions/update-issue@4e63a5934064216b7caa7a4a833b1b0936bec660 # v0.20.0
+        with:
+          token:   ${{ secrets.GITHUB_TOKEN }}
+          success: ${{ !contains(needs.*.result, 'failure') }}

@@ -1,0 +1,152 @@
+# =============================================================================
+# Deploy repository to S3 + invalidate CloudFront
+# =============================================================================
+#
+# Reusable workflow called by `publish.yml`. Pulls the github-pages artifact
+# the build job produced, assumes the publisher IAM role via OIDC, and uploads
+# the repository state to S3 in the order required by TUF's atomic-publish
+# discipline.
+#
+# Critical ordering:
+#
+#   1. Every non-`timestamp.json` object is uploaded FIRST with the
+#      `max-age=31536000, immutable` Cache-Control header. Versioned
+#      metadata (`N.root.json`, `N.targets.json`, `N.snapshot.json`) and
+#      hash-prefixed targets (`targets/<sha256>.<name>`) are content-
+#      addressed under their publication URL: once written, they never
+#      change. The long TTL is safe.
+#
+#      The one exception is `index.html` (the tuf-on-ci status page served
+#      at the CDN root): it is regenerated every publish, so it is uploaded
+#      separately with a short TTL and invalidated at the edge.
+#
+#   2. `timestamp.json` is uploaded LAST with `Cache-Control: no-store`.
+#      Uploading it before its referenced snapshot.json was on the origin
+#      would let a client racing the publish fetch a fresh `timestamp.json`
+#      pointing at metadata that does not exist yet.
+#
+#   3. CloudFront is told to invalidate `/timestamp.json` immediately.
+#      This is the only path the CDN serves from origin on every request.
+#      Every other path is content-addressed and cached at the edge.
+#
+# Together these three steps give the system its atomic-publish property: at
+# every moment, every client that fetches `timestamp.json` and follows its
+# references finds a fully consistent set of metadata and targets, even
+# mid-publish.
+#
+# =============================================================================
+
+name: Deploy repository to S3
+
+on:
+  workflow_call:
+    secrets:
+      CLOUDFRONT_DISTRIBUTION_ID:
+        required: true
+
+permissions: {}
+
+env:
+  AWS_REGION:                  us-east-1
+  PUBLISHER_ROLE_ARN:          arn:aws:iam::751317295400:role/service-role/a209440-tuf-publisher
+  DISTRIBUTION_BUCKET:         a209440-tuf-root-signing-prod
+  CLOUDFRONT_INVALIDATE_PATHS: "/timestamp.json /index.html /"
+
+jobs:
+  deploy-to-s3:
+    name: Upload repository to S3 + CloudFront invalidation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      id-token: write
+    steps:
+      - name: Download repository artifact built by publish.yml
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: github-pages
+
+      - name: Unpack the Pages artifact tarball
+        run: |
+          set -euo pipefail
+          mkdir repository
+          tar --directory repository -xvf artifact.tar
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
+        with:
+          role-to-assume:      ${{ env.PUBLISHER_ROLE_ARN }}
+          aws-region:          ${{ env.AWS_REGION }}
+          audience:            sts.amazonaws.com
+          mask-aws-account-id: true
+
+      # ---------------------------------------------------------------------
+      # Step 1: every object except timestamp.json and index.html, with the
+      # immutable TTL. `--delete` reconciles deletions for any object the
+      # upstream repository no longer references. Excluded objects are left
+      # untouched on the origin and handled in their own steps.
+      # ---------------------------------------------------------------------
+      - name: Upload non-timestamp objects (immutable cache)
+        run: |
+          set -euo pipefail
+          aws s3 sync repository/ "s3://${DISTRIBUTION_BUCKET}/" \
+              --delete \
+              --exclude "timestamp.json" \
+              --exclude "index.html" \
+              --cache-control "max-age=31536000,immutable" \
+              --only-show-errors
+
+      # ---------------------------------------------------------------------
+      # Step 1b: the tuf-on-ci status page. Regenerated every publish, so it
+      # carries a short TTL instead of the immutable header and is
+      # invalidated below alongside timestamp.json.
+      # ---------------------------------------------------------------------
+      - name: Upload index.html status page (short TTL)
+        run: |
+          set -euo pipefail
+          aws s3 cp repository/index.html "s3://${DISTRIBUTION_BUCKET}/index.html" \
+              --cache-control "max-age=86400" \
+              --only-show-errors
+
+      # ---------------------------------------------------------------------
+      # Step 2: timestamp.json LAST, with no-store.
+      # ---------------------------------------------------------------------
+      - name: Upload timestamp.json (no-store)
+        run: |
+          set -euo pipefail
+          aws s3 cp repository/timestamp.json "s3://${DISTRIBUTION_BUCKET}/timestamp.json" \
+              --cache-control "no-store" \
+              --only-show-errors
+
+      # ---------------------------------------------------------------------
+      # Step 3: invalidate the freshness witness and the status page at the
+      # edge so any cached copy is replaced with the new origin object on
+      # next fetch.
+      # ---------------------------------------------------------------------
+      - name: Invalidate CloudFront edge cache
+        id: invalidation
+        env:
+          DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          set -euo pipefail
+          read -ra paths <<< "${CLOUDFRONT_INVALIDATE_PATHS}"
+          INVALIDATION_ID=$(
+            aws cloudfront create-invalidation \
+                --distribution-id "${DISTRIBUTION_ID}" \
+                --paths "${paths[@]}" \
+                --query 'Invalidation.Id' \
+                --output text
+          )
+          echo "invalidation_id=${INVALIDATION_ID}" >> "$GITHUB_OUTPUT"
+
+      - name: Summarise publish outcome
+        if: always()
+        run: |
+          {
+            echo "## Publish to CDN"
+            echo
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Bucket | \`s3://${DISTRIBUTION_BUCKET}/\` |"
+            echo "| Invalidated paths | \`${CLOUDFRONT_INVALIDATE_PATHS}\` |"
+            echo "| Invalidation ID | \`${{ steps.invalidation.outputs.invalidation_id || 'n/a' }}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,30 @@
+# Local tuf-on-ci signer config
+.tuf-on-ci-sign.ini
+
+# Python tooling (tooling/)
+__pycache__/
+*.py[cod]
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Staged trust-material artifacts
+staging/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Local environment / secrets
+.env
+.env.*
+*.env

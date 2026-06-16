@@ -1,0 +1,23 @@
+# =============================================================================
+# CODEOWNERS — TR TUF Trust Distribution
+# =============================================================================
+
+# Catch-all: any file under any path requires keyholder review.
+*                          @thomsonreuters/tuf-keyholders
+
+# TUF metadata.
+# Mutated only by the signing-event workflow on threshold satisfaction.
+/metadata/                 @thomsonreuters/tuf-keyholders
+
+# TUF targets.
+# Updated on every Sigstore anchor rotation.
+/targets/                  @thomsonreuters/tuf-keyholders
+
+# CI/CD configuration.
+/.github/                  @thomsonreuters/tuf-keyholders
+
+# Trust-material acquisition toolchain.
+/tooling/                  @thomsonreuters/tuf-keyholders
+
+# Adapted upstream `tuf-on-ci` playbooks.
+/playbooks/                @thomsonreuters/tuf-keyholders

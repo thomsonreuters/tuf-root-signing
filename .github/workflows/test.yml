@@ -1,0 +1,164 @@
+# =============================================================================
+# Test repository
+# =============================================================================
+#
+# Reusable workflow. Drives `tuf-on-ci/actions/test-repository` against
+# either the GitHub Pages preview (default) or an explicit metadata_url
+# (the live CloudFront endpoint in `publish.yml`). Also runs the local
+# `smoke_test.sh` end-to-end check that exercises the published trust
+# materials with a real Sigstore-compatible client.
+#
+# =============================================================================
+
+name: Test repository
+
+on:
+  workflow_call:
+    inputs:
+      metadata_url:
+        description: |
+          Base metadata URL the client should use. Empty defaults to the
+          GitHub Pages preview surface. The post-publish step passes the
+          live CloudFront URL.
+        type:     string
+        required: false
+        default:  ""
+  workflow_dispatch:
+  schedule:
+    # 04:15 / 10:15 / 16:15 / 22:15 UTC. Independent of the publish
+    # cadence so that the live CDN is exercised even on days when no
+    # publish has happened.
+    - cron: '15 4,10,16,22 * * *'
+
+permissions: {}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Gate the tests on the endpoint actually serving the published revision.
+  # GitHub Pages marks a deployment "success" the moment the deployment
+  # object is created, but the global edge can take up to a couple of minutes
+  # to start serving the new artifact. The live CloudFront path likewise needs
+  # its `/timestamp.json` invalidation to propagate. Both test jobs depend on
+  # this so they never race a not-yet-served endpoint and 404 spuriously.
+  # ---------------------------------------------------------------------------
+  wait-for-metadata:
+    name: Wait for the metadata endpoint to serve the published revision
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    permissions: {}
+    steps:
+      - name: Poll until timestamp.json and 1.root.json are served
+        env:
+          METADATA_URL: ${{ inputs.metadata_url || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
+        run: |
+          set -uo pipefail
+          base="${METADATA_URL%/}"
+          for url in "${base}/timestamp.json" "${base}/1.root.json"; do
+            for attempt in $(seq 1 30); do
+              if curl -fsS -o /dev/null "$url"; then
+                echo "ready: $url"
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                echo "timed out waiting for $url" >&2
+                exit 1
+              fi
+              echo "attempt ${attempt}: ${url} not ready yet; retrying in 8s"
+              sleep 8
+            done
+          done
+
+  # ---------------------------------------------------------------------------
+  # Drive the upstream test-repository action. This is the canonical
+  # TUF client conformance check (refresh, root chain-of-continuity walk,
+  # download targets, verify hashes).
+  # ---------------------------------------------------------------------------
+  tuf-on-ci-test:
+    name: tuf-on-ci client conformance test
+    needs: [wait-for-metadata]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Run TUF client conformance test
+        uses: theupdateframework/tuf-on-ci/actions/test-repository@4e63a5934064216b7caa7a4a833b1b0936bec660 # v0.20.0
+        with:
+          metadata_url: ${{ inputs.metadata_url || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
+          # When the workflow runs standalone (scheduled or dispatched in
+          # its own right), demand future validity windows. The live
+          # repository must remain valid for at least 5 days from now,
+          # and root/targets for 30 days. When called from publish.yml
+          # `github.workflow` reports the caller's name so both checks
+          # fall back to 0. A freshly-published repo is tested without
+          # margin.
+          valid_days:         ${{ github.workflow == 'Test repository' && '5' || '0' }}
+          offline_valid_days: ${{ github.workflow == 'Test repository' && '30' || '0' }}
+
+  # ---------------------------------------------------------------------------
+  # Drive the in-repo smoke_test.sh. This is the TR-authored end-to-end
+  # check that goes beyond TUF conformance. It round-trips the published
+  # endpoints through tuf-ngclient, verifies the trusted_root.json bytes
+  # parse as a Sigstore TrustedRoot document, then initializes cosign (a
+  # real Sigstore client, go-tuf under the hood) against the repo so the
+  # trust root is fetched and hash-verified by an independent implementation.
+  # ---------------------------------------------------------------------------
+  smoke-test:
+    name: TR smoke test
+    needs: [wait-for-metadata]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Install Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.14'
+
+      - name: Install smoke-test dependencies
+        run: pip install --require-hashes -r tooling/requirements.txt
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: 'v3.0.6'
+
+      - name: Run TR smoke test
+        env:
+          BASE_URL: ${{ inputs.metadata_url || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
+        run: |
+          set -euo pipefail
+          ./tooling/smoke_test.sh "${BASE_URL}"
+
+  # ---------------------------------------------------------------------------
+  # Update the tracking issue when this workflow runs in its OWN context
+  # (scheduled / dispatched). When called via `workflow_call` from
+  # `publish.yml`, `github.workflow` is the caller's name and the caller
+  # manages its own tracking issue, so this job is skipped.
+  # ---------------------------------------------------------------------------
+  update-issue:
+    name: Update tracking issue
+    runs-on: ubuntu-latest
+    needs: [wait-for-metadata, tuf-on-ci-test, smoke-test]
+    if: always() && !cancelled() && github.workflow == 'Test repository'
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues:   write
+    steps:
+      - name: Open / close the workflow's tracking issue based on outcome
+        uses: theupdateframework/tuf-on-ci/actions/update-issue@4e63a5934064216b7caa7a4a833b1b0936bec660 # v0.20.0
+        with:
+          token:   ${{ secrets.GITHUB_TOKEN }}
+          success: ${{ !contains(needs.*.result, 'failure') }}

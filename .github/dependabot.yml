@@ -1,0 +1,58 @@
+# =============================================================================
+# Dependabot configuration
+# =============================================================================
+#
+# Keeps two dependency surfaces fresh, each as its own `updates` entry:
+#
+#   - GitHub Actions, pinned by 40-character commit SHA with a version comment.
+#   - Python dependencies for the toolchain.
+#
+# Dependabot opens a PR with the upgrade whenever an upstream release lands.
+# For the SHA-pinned actions the PR carries the new SHA + comment, and the
+# keyholder reviewing it can verify the new SHA corresponds to the claimed tag.
+#
+# A cooldown holds back freshly published releases for several days so a
+# compromised or yanked release isn't adopted the moment it lands. On
+# ecosystems that support SemVer cooldowns (pip), major bumps wait longer.
+#
+# =============================================================================
+
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: "Etc/UTC"
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: scope
+    labels:
+      - dependencies
+      - github-actions
+
+  - package-ecosystem: pip
+    directory: /tooling
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: "Etc/UTC"
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 14
+      semver-patch-days: 7
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "deps"
+      include: scope
+    labels:
+      - dependencies
+      - python
