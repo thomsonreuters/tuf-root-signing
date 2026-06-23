@@ -1,31 +1,23 @@
 {
- "signatures": [
-  {
-   "keyid": "c44e1de6c2c5c227a468edab3774b73776960bf478d7dd75dfbfd3ad9ca07157",
-   "sig": "3046022100bdbfb47c26a3c957744009ced6efd29d5f0854f58a00fc06d541e01cb31ef690022100919ee80856afa8ed569e524b73b3a32c8438c31c515659fadaf5e6815d751046"
-  },
-  {
-   "keyid": "91c23617d6a087a213437f1539c2f1edfdef9d29db0c39a2f2ae1647dab88a0f",
-   "sig": "3045022048873fad69fecd109c3e00b0df0520b1710a5c68f387113b3f7d58ede3cb624d022100ff91b38bca1053eaf6bbef055a76398c6617c9dcb42ea652c0ce6abfe1a5b5bc"
-  },
-  {
-   "keyid": "7b8d2556efdb334ecbbe4bea7f448a1ddd81c7b1b51139aa3244c2f25fd15784",
-   "sig": "3045022042346111e5ebb1242627b7caff9d1b44cc03134d382d96addbf3754ddc8e5da0022100ecd5b8e2c4dd0a57866318ceba297a6ff7067b5045e68c3965a64ab1ba686e30"
-  },
-  {
-   "keyid": "fc04986c816a43823f6d6a19bb63dc9a799cb46d1274f61a7255ee13a7662157",
-   "sig": "304402207b655f8501174c40160ad64e9de79ad68cb1c462c50fd9bb26536881dfd9910b022043b2fcf28c3ca027c3ab7333cde1ccb8d780867c9171707ec3a99961a853ded9"
-  },
-  {
-   "keyid": "fae9541395e7634472e186c30304131015b4eefa77f4b8f3019aa6cdce3378cf",
-   "sig": "304502207bedec724c4b0bc41703fcf4fe925109c8b42f48c24a152e057810ddd352c56e022100fe57e16a66e78f25e203c7029945aaaa2b30fca906c4983330cb321fc121ecbe"
-  }
- ],
+ "signatures": [],
  "signed": {
   "_type": "targets",
   "expires": "2027-06-16T16:13:08Z",
   "spec_version": "1.0.31",
-  "targets": {},
+  "targets": {
+   "signing_config.v0.2.json": {
+    "hashes": {
+     "sha256": "53f5fa09c1c6f9c526d2c2530a16baf15484ec49438bec78526d69eafd94dc66"
+    },
+    "length": 1253
+   },
+   "trusted_root.json": {
+    "hashes": {
+     "sha256": "1862e6491faf75b0c3b764d29ad5ca1dbb1ba1b23a7066adc2282e84d250de52"
+    },
+    "length": 12015
+   }
+  },
   "version": 1,
   "x-tuf-on-ci-expiry-period": 365,
   "x-tuf-on-ci-signing-period": 60
