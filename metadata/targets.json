@@ -1,5 +1,10 @@
 {
- "signatures": [],
+ "signatures": [
+  {
+   "keyid": "c44e1de6c2c5c227a468edab3774b73776960bf478d7dd75dfbfd3ad9ca07157",
+   "sig": "30440220583b89a002479ce26d79956b5bda7c0c29485e3e436164e4ab81cf0659508c0102207dde1f332e7cee3c34165d89216ef69c74a762f173e691642706229cd09a2974"
+  }
+ ],
  "signed": {
   "_type": "targets",
   "expires": "2027-06-16T16:13:08Z",
