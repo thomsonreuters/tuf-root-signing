@@ -49,7 +49,7 @@ permissions: {}
 env:
   AWS_REGION:                  us-east-1
   PUBLISHER_ROLE_ARN:          arn:aws:iam::751317295400:role/service-role/a209440-tuf-publisher
-  DISTRIBUTION_BUCKET:         a209440-tuf-root-signing-prod
+  DISTRIBUTION_BUCKET:         a209440-tuf-root-signing
   CLOUDFRONT_INVALIDATE_PATHS: "/timestamp.json /index.html /"
 
 jobs:
