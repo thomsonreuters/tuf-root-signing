@@ -13,7 +13,7 @@ name: Online sign
 on:
   schedule:
     # 01:45 / 07:45 / 13:45 / 19:45 UTC. Offset 30 minutes from
-    # `create-signing-events` and 30 minutes before `drift-check`.
+    # `create-signing-events`.
     - cron: '45 1,7,13,19 * * *'
   push:
     branches: [main]
@@ -51,7 +51,7 @@ jobs:
         uses: theupdateframework/tuf-on-ci/actions/online-sign@4e63a5934064216b7caa7a4a833b1b0936bec660 # v0.20.0
         with:
           token:              ${{ steps.app-token.outputs.token }}
-          aws_role_to_assume: arn:aws:iam::728336755756:role/service-role/a209440-tuf-online-signer
+          aws_role_to_assume: arn:aws:iam::751317295400:role/service-role/a209440-tuf-online-signer
           aws_region:         us-east-1
 
       - name: Summarise outcome

@@ -15,8 +15,8 @@ name: Create signing events
 on:
   schedule:
     # 01:15 / 07:15 / 13:15 / 19:15 UTC. Staggered 30 minutes before
-    # online-sign and offset from drift-check so the three scheduled
-    # workflows never queue behind each other.
+    # online-sign so the two scheduled workflows never queue behind
+    # each other.
     - cron: '15 1,7,13,19 * * *'
   workflow_dispatch:
 
