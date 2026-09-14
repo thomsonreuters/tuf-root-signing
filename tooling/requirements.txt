@@ -151,9 +151,9 @@ securesystemslib[crypto]==1.4.0 \
     # via
     #   -r requirements.in
     #   tuf
-tuf==7.0.0 \
-    --hash=sha256:572bdbdc9ff4a82278a0d4773e6100863b9b33023f27575e84ca65b486dd0d79 \
-    --hash=sha256:9d2e6723538e0d5a3e482b6de805fcfe64481448d5853039ba6b06ba541efd7f
+tuf==7.0.1 \
+    --hash=sha256:5ada1db78da3518fa851e28588f4b2249b8662a28ae528f54afa2a1de541fb31 \
+    --hash=sha256:d30434bda6e079ab303fb30d1b3006d939a10ca34783b1573d61cd9b802fa45c
     # via -r requirements.in
 urllib3==2.7.0 \
     --hash=sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c \
