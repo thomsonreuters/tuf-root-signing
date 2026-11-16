@@ -33,7 +33,16 @@
       "url": "https://rekor.thomsonreuters.com",
       "majorApiVersion": 1,
       "validFor": {
-        "start": "2026-05-14T00:00:00Z"
+        "start": "2026-05-14T00:00:00Z",
+        "end": "2026-10-29T00:00:00Z"
+      },
+      "operator": "thomsonreuters.com"
+    },
+    {
+      "url": "https://rekor.thomsonreuters.com",
+      "majorApiVersion": 2,
+      "validFor": {
+        "start": "2026-10-29T00:00:00Z"
       },
       "operator": "thomsonreuters.com"
     }
