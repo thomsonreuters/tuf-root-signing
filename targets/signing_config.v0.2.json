@@ -49,7 +49,7 @@
   ],
   "tsaUrls": [
     {
-      "url": "https://timestamp.thomsonreuters.com",
+      "url": "https://timestamp.thomsonreuters.com/api/v1/timestamp",
       "majorApiVersion": 1,
       "validFor": {
         "start": "2026-06-02T15:54:15Z"
