@@ -10,27 +10,27 @@
   },
   {
    "keyid": "7b8d2556efdb334ecbbe4bea7f448a1ddd81c7b1b51139aa3244c2f25fd15784",
-   "sig": "3046022100ee7ef0377f22958bd2ccca45bf0ff7a7bf523f0f6a39fbb3fa13ac390ce788e5022100f0e07bdf9e3b1eb03b511d6c630961d79b23a818f3bf55e930167e02674076db"
+   "sig": ""
   },
   {
    "keyid": "fc04986c816a43823f6d6a19bb63dc9a799cb46d1274f61a7255ee13a7662157",
-   "sig": "3045022100bbf7e5c34508d231bc6e73f7a4ae77078233e8a82d73d6dd6bf3ec6f4929923c02201002aabb6ed6e32b40babf9b4f67cdb04e721aa923a96a6c9c795acebe0e2aa4"
+   "sig": ""
   },
   {
    "keyid": "fae9541395e7634472e186c30304131015b4eefa77f4b8f3019aa6cdce3378cf",
-   "sig": "3046022100c193111b842ff1c982f6827407af535e38e95e2b211772cd70b597a34ca3269f022100c3c47f615ced82c3a54f818ec343d2202b1eb550f8d7f7e8b8063ba4b029299c"
+   "sig": ""
   }
  ],
  "signed": {
   "_type": "targets",
-  "expires": "2027-11-11T16:15:53Z",
+  "expires": "2027-11-19T08:55:09Z",
   "spec_version": "1.0.31",
   "targets": {
    "signing_config.v0.2.json": {
     "hashes": {
-     "sha256": "72fec6e8ad9ed7d8779a4d927f688afb0b4ad3a78d5eaba8b05ab1b70e8cbc35"
+     "sha256": "9ce1b8de9c8ac5a8539c789f9499dd641c0218c180c8ff62920d23e8ba1ef1f1"
     },
-    "length": 1490
+    "length": 1507
    },
    "trusted_root.json": {
     "hashes": {
@@ -39,7 +39,7 @@
     "length": 12015
    }
   },
-  "version": 2,
+  "version": 3,
   "x-tuf-on-ci-expiry-period": 365,
   "x-tuf-on-ci-signing-period": 60
  }
